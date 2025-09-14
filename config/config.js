@@ -13,5 +13,6 @@ if (error) {
 
 module.exports = {
   port: envVars.PORT,
-  DB_URL: envVars.MONGO_URL, // Ensure consistency with your code
+  DB_URL: envVars.MONGO_URL,
+  env: envVars.NODE_ENV,
 };
