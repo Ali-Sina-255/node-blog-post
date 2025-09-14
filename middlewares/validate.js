@@ -1,66 +1,30 @@
 const Joi = require("joi");
 
-const validate = (schemas) => (req, res, next) => {
-  if (!schemas) {
+const validate = (schema) => (req, res, next) => {
+  if (!schema) {
     return res
       .status(500)
-      .send({ error: true, message: "Validation schemas are missing" });
+      .send({ error: true, message: "Validation schema is missing" });
   }
 
-  // If schemas for specific request parts (params, query, body) are provided, validate them
-  const validationResults = [];
-
-  // Validate params if schema is provided
-  if (schemas.params && req.params) {
-    const { error } = Joi.compile(schemas.params).validate(req.params);
-    if (error) {
-      validationResults.push({
-        part: "params",
-        errors: error.details.map((detail) => ({
-          key: detail.context.key,
-          message: detail.message,
-        })),
-      });
+  //   const keys = ["params", "query", "body"];
+  const keys = Object.keys(schema);
+  const object = keys.reduce((obj, key) => {
+    if (Object.prototype.hasOwnProperty.call(req, key)) {
+      obj[key] = req[key];
     }
-  }
+    return obj;
+  }, {});
 
-  // Validate query if schema is provided
-  if (schemas.query && req.query) {
-    const { error } = Joi.compile(schemas.query).validate(req.query);
-    if (error) {
-      validationResults.push({
-        part: "query",
-        errors: error.details.map((detail) => ({
-          key: detail.context.key,
-          message: detail.message,
-        })),
-      });
-    }
-  }
+  console.log(object);
 
-  // Validate body if schema is provided
-  if (schemas.body && req.body) {
-    const { error } = Joi.compile(schemas.body).validate(req.body);
-    if (error) {
-      validationResults.push({
-        part: "body",
-        errors: error.details.map((detail) => ({
-          key: detail.context.key,
-          message: detail.message,
-        })),
-      });
-    }
-  }
-
-  // If any validation results exist, return errors
-  if (validationResults.length > 0) {
-    return res.status(400).send({
-      error: true,
-      validationResults,
+  const { value, error } = Joi.compile(schema).validate(object);
+  if (error) {
+    const errors = error.details.map((detail) => {
+      return { key: detail.context.key, message: detail.message };
     });
+    return res.status(400).send({ error: true, errors });
   }
-
-  // If no errors, proceed to the next middleware or route handler
   return next();
 };
 
