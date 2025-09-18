@@ -5,6 +5,7 @@ const config = require("./config/config");
 const { errorHandler, errorConverter } = require("./middlewares/errors.js");
 const ApiError = require("./utils/ApiError.js");
 const httpStatus = require("http-status");
+const logger = require("./config/logger.js");
 
 // server app
 const app = express();
@@ -28,7 +29,7 @@ api.use((req, res, next) => {
 });
 
 app.listen(config.port, () => {
-  console.log(`Server is running on port ${config.port}`);
+  logger.info(`Server is running on port ${config.port}`);
 });
 
 const exitHandle = () => {
